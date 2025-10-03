@@ -1,0 +1,20 @@
+(rule
+ (targets libstemmer.a dllstemmer.so libstemmer.h)
+ (deps build.sh GNUmakefile libstemmer_c-3.0.1.tar.gz)
+ (action
+  (with-stdout-to
+   build.log
+   (run
+    sh
+    ./build.sh
+    "%{ocaml-config:c_compiler}"
+    "%{ocaml-config:ocamlc_cflags}"))))
+
+(library
+ (name snowball)
+ (public_name stem.snowball)
+ (install_c_headers libstemmer)
+ (foreign_stubs
+  (language c)
+  (names snowball))
+ (foreign_archives stemmer))

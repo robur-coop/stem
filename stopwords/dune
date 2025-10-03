@@ -1,0 +1,63 @@
+(executable
+ (name generate)
+ (modules generate)
+ (libraries fmt))
+
+(library
+ (name stopwords)
+ (public_name stem.stopwords)
+ (modules
+  stopwords
+  arabic
+  danish
+  dutch
+  english
+  finnish
+  french
+  german
+  hungarian
+  indonesian
+  italian
+  norwegian
+  portuguese
+  russian
+  spanish
+  swedish)
+ (libraries stem.snowball))
+
+(rule
+ (deps
+  arabic.txt
+  danish.txt
+  dutch.txt
+  english.txt
+  finnish.txt
+  french.txt
+  german.txt
+  hungarian.txt
+  indonesian.txt
+  italian.txt
+  norwegian.txt
+  portuguese.txt
+  russian.txt
+  spanish.txt
+  swedish.txt
+  generate.exe)
+ (targets
+  arabic.ml
+  danish.ml
+  dutch.ml
+  english.ml
+  finnish.ml
+  french.ml
+  german.ml
+  hungarian.ml
+  indonesian.ml
+  italian.ml
+  norwegian.ml
+  portuguese.ml
+  russian.ml
+  spanish.ml
+  swedish.ml)
+ (action
+  (run ./generate.exe)))

@@ -1,0 +1,5 @@
+(library
+ (name tokenizer)
+ (public_name stem.tokenizer)
+ (modules tokenizer whitespace dash norm s)
+ (libraries re))

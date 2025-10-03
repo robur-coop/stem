@@ -1,0 +1,24 @@
+(executable
+ (name stemmer)
+ (modules stemmer)
+ (libraries fmt stem.cli stem.snowball))
+
+(executable
+ (name ts)
+ (modules ts)
+ (libraries fmt stem.cli stem.snowball stem.tokenizer miou.unix))
+
+(library
+ (name stem_cli)
+ (modules stem_cli)
+ (public_name stem.cli)
+ (libraries
+  cmdliner
+  fmt
+  logs.cli
+  fmt.cli
+  logs.fmt
+  fmt.tty
+  logs.threaded
+  stem.snowball
+  stem.tokenizer))
