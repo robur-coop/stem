@@ -63,23 +63,34 @@ end
 let ( let@ ) finally fn = Fun.protect ~finally fn
 let error_msgf fmt = Fmt.kstr (fun msg -> Error (`Msg msg)) fmt
 
-let counter encoding language queue =
+let none_if_stop language =
+  let stops = List.assoc language Stopwords.words in
+  fun word -> if List.mem word stops then None else Some word
+
+let counter encoding language queue () =
   let dataset = Hashtbl.create 0x100 in
   let stemmer = Snowball.create ~encoding language in
+  let@ () = fun () -> Snowball.remove stemmer in
+  let none_if_stop = none_if_stop language in
   let rec go () =
-    let word = Stream.get queue in
-    let word = Option.map (Snowball.stem stemmer) word in
-    match (word, Option.bind word (Hashtbl.find_opt dataset)) with
-    | Some word, Some count ->
-        Hashtbl.replace dataset word (count + 1) ;
+    let orig = Stream.get queue in
+    let stem = Option.map (Snowball.stem stemmer) orig in
+    let stem = Option.bind stem none_if_stop in
+    let count = Option.bind stem (Hashtbl.find_opt dataset) in
+    match (orig, stem, count) with
+    | Some orig, Some stem, Some (count, srcs) ->
+        let srcs = if List.mem orig srcs then srcs else orig :: srcs in
+        Hashtbl.replace dataset stem (count + 1, srcs) ;
         go ()
-    | Some word, None ->
-        Hashtbl.add dataset word 1 ;
+    | Some orig, Some stem, None ->
+        Hashtbl.add dataset stem (1, [ orig ]) ;
         go ()
-    | None, _ ->
-        Snowball.remove stemmer ;
-        dataset in
-  go
+    | Some _, None, _ -> go ()
+    | None, _, _ -> dataset in
+  go ()
+
+let pp_frequence ppf (count, words) =
+  Fmt.pf ppf "@[<1>(%d, @[<hov>%a@])@]" count Fmt.(Dump.list (fmt "%s")) words
 
 let run _ encoding language actions filename =
   Miou_unix.run @@ fun () ->
@@ -93,7 +104,10 @@ let run _ encoding language actions filename =
   let prm1 = Miou.call (counter encoding language queue) in
   Miou.await_exn prm0 ;
   let dataset = Miou.await_exn prm1 in
-  Fmt.pr "%a\n%!" Fmt.(Dump.hashtbl (fmt "%S") int) dataset
+  let seq = Hashtbl.to_seq dataset in
+  let lst = List.of_seq seq in
+  let lst = List.sort (fun (_, (a, _)) (_, (b, _)) -> Int.compare b a) lst in
+  Fmt.pr "%a\n%!" Fmt.(Dump.list (Dump.pair (fmt "%S") pp_frequence)) lst
 
 open Cmdliner
 

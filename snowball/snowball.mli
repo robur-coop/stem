@@ -1,4 +1,7 @@
 type encoding = ISO_8859_1 | ISO_8859_2 | KOI8_R | UTF_8
+
+val pp_encoding : Format.formatter -> encoding -> unit
+
 type t
 
 module Language : sig

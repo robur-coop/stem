@@ -4,7 +4,7 @@ type behavior = Norm.behavior =
   | Merge_with_previous
   | Merge_with_next
 
-type pattern = Whitespace | Dash
+type pattern = Whitespace | Dash | Bert
 type action = pattern * Norm.behavior
 
 val run : action list -> string -> string Seq.t

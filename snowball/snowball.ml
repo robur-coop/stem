@@ -8,6 +8,8 @@ let encoding_to_string = function
   | KOI8_R -> "KOI8_R"
   | UTF_8 -> "UTF_8"
 
+let pp_encoding ppf v = Format.pp_print_string ppf (encoding_to_string v)
+
 type t
 
 exception Stem_internal_error of string

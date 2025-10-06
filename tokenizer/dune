@@ -1,5 +1,5 @@
 (library
  (name tokenizer)
  (public_name stem.tokenizer)
- (modules tokenizer whitespace dash norm s)
- (libraries re))
+ (modules tokenizer on_utf8 whitespace bert dash norm s)
+ (libraries fmt uutf uucp re stem.snowball))

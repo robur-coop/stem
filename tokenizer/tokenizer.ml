@@ -1,6 +1,4 @@
 module S = S
-module Whitespace = Whitespace
-module Dash = Dash
 module Norm = Norm
 
 type behavior = Norm.behavior =
@@ -9,11 +7,14 @@ type behavior = Norm.behavior =
   | Merge_with_previous
   | Merge_with_next
 
-type pattern = Whitespace | Dash
+type pattern = Whitespace | Dash | Bert
 type action = pattern * Norm.behavior
 
 let pattern_to_module pattern : (module S.PATTERN) =
-  match pattern with Whitespace -> (module Whitespace) | Dash -> (module Dash)
+  match pattern with
+  | Whitespace -> (module Whitespace)
+  | Dash -> (module Dash)
+  | Bert -> (module Bert)
 
 let run lst str =
   let fn acc (pattern, behavior) =

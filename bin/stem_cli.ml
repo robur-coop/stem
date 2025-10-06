@@ -14,6 +14,7 @@ let tokenizer_from_string str =
   match String.lowercase_ascii str with
   | "whitespace" -> Ok Tokenizer.Whitespace
   | "dash" -> Ok Dash
+  | "bert" -> Ok Bert
   | _ -> error_msgf "Invalid tokenizer: %S" str
 
 let behavior_from_string str =
@@ -27,6 +28,7 @@ let behavior_from_string str =
 let pp_tokenizer ppf = function
   | Tokenizer.Whitespace -> Fmt.string ppf "whitespace"
   | Dash -> Fmt.string ppf "dash"
+  | Bert -> Fmt.string ppf "bert"
 
 let pp_behavior ppf = function
   | Tokenizer.Remove -> Fmt.string ppf "remove"

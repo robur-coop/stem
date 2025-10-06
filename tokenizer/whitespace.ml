@@ -1,10 +1,5 @@
-let re = Re.Pcre.re "\\w+|[^\\w\\s]+"
-let re = Re.compile re
-
-let find_matches ?off:pos ?len str =
-  let fn = function
-    | `Delim g ->
-        let str = Re.Group.get g 0 in
-        { S.str; is_match = false }
-    | `Text str -> { S.str; is_match = true } in
-  Re.Seq.split_full ?pos ?len re str |> Seq.map fn
+let find_matches ?(encoding = Snowball.UTF_8) =
+  match encoding with
+  | Snowball.UTF_8 -> On_utf8.find_matches ~is:Uucp.White.is_white_space
+  | encoding ->
+      Fmt.invalid_arg "Unimplemented encoding: %a" Snowball.pp_encoding encoding

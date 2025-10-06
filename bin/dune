@@ -6,7 +6,7 @@
 (executable
  (name ts)
  (modules ts)
- (libraries fmt stem.cli stem.snowball stem.tokenizer miou.unix))
+ (libraries fmt stem.cli stem.stopwords stem.snowball stem.tokenizer miou.unix))
 
 (library
  (name stem_cli)
