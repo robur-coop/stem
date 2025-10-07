@@ -25,10 +25,15 @@ let behavior_from_string str =
   | "merge_with_next" | "merge-with-next" -> Ok Merge_with_next
   | _ -> error_msgf "Invalid behavior: %S" str
 
+let re_from_string str =
+  try Ok (Re.Pcre.regexp str)
+  with _ -> error_msgf "Invalid regular expression: %S" str
+
 let pp_tokenizer ppf = function
   | Tokenizer.Whitespace -> Fmt.string ppf "whitespace"
   | Dash -> Fmt.string ppf "dash"
   | Bert -> Fmt.string ppf "bert"
+  | Regex re -> Fmt.pf ppf "re:%a" Re.pp_re re
 
 let pp_behavior ppf = function
   | Tokenizer.Remove -> Fmt.string ppf "remove"
@@ -75,6 +80,10 @@ let action =
     | [ tokenizer ] ->
         let* tokenizer = tokenizer_from_string tokenizer in
         Ok (tokenizer, Tokenizer.Remove)
+    | ("re" | "RE" | "rE" | "Re") :: behavior :: re ->
+        let* behavior = behavior_from_string behavior in
+        let* re = re_from_string (String.concat ":" re) in
+        Ok (Tokenizer.Regex re, behavior)
     | tokenizer :: behavior ->
         let behavior = String.concat ":" behavior in
         let* tokenizer = tokenizer_from_string tokenizer in
@@ -82,7 +91,10 @@ let action =
         Ok (tokenizer, behavior)
     | [] -> assert false in
   let pp ppf (tokenizer, action) =
-    Fmt.pf ppf "%a:%a" pp_tokenizer tokenizer pp_behavior action in
+    match tokenizer with
+    | Tokenizer.Regex re -> Fmt.pf ppf "re:%a:%a" pp_behavior action Re.pp_re re
+    | tokenizer -> Fmt.pf ppf "%a:%a" pp_tokenizer tokenizer pp_behavior action
+  in
   Arg.conv (parser, pp)
 
 let actions =

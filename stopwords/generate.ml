@@ -27,10 +27,9 @@ let dictionary_from_file filename =
     match input_line ic with
     | exception End_of_file -> m
     | line ->
-        let str = String.trim line in
-        if String.starts_with ~prefix:"|" str = false
-        then go (S.add str m)
-        else go m in
+        let[@warning "-8"] (str :: _) = String.split_on_char '|' line in
+        let str = String.trim str in
+        if String.length str > 0 then go (S.add str m) else go m in
   go S.empty
 
 let dictionary_to_ocaml_module m filename =

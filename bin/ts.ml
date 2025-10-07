@@ -89,10 +89,7 @@ let counter encoding language queue () =
     | None, _, _ -> dataset in
   go ()
 
-let pp_frequence ppf (count, words) =
-  Fmt.pf ppf "@[<1>(%d, @[<hov>%a@])@]" count Fmt.(Dump.list (fmt "%s")) words
-
-let run _ encoding language actions filename =
+let run _ separator encoding language actions filename =
   Miou_unix.run @@ fun () ->
   let ic = open_in filename in
   let@ () = fun () -> close_in ic in
@@ -107,7 +104,8 @@ let run _ encoding language actions filename =
   let seq = Hashtbl.to_seq dataset in
   let lst = List.of_seq seq in
   let lst = List.sort (fun (_, (a, _)) (_, (b, _)) -> Int.compare b a) lst in
-  Fmt.pr "%a\n%!" Fmt.(Dump.list (Dump.pair (fmt "%S") pp_frequence)) lst
+  let fn (stem, (count, _)) = Fmt.pr "%S%s%d\n%!" stem separator count in
+  List.iter fn lst
 
 open Cmdliner
 
@@ -124,10 +122,22 @@ let input =
   let open Arg in
   required & pos ~rev:true 0 (some input) None & info [] ~docv:"FILE"
 
+let separator =
+  let doc = "The separator between stem words and frequencies." in
+  let is_printable = function '\x21' .. '\x7e' -> true | _ -> false in
+  let parser str =
+    if String.length str <> 1 || not (is_printable str.[0])
+    then error_msgf "Invalid separator %S" str
+    else Ok str in
+  let separator = Arg.conv (parser, Fmt.string) in
+  let open Arg in
+  value & opt separator "," & info [ "s"; "separator" ] ~doc ~docv:"SEPARATOR"
+
 let term =
   let open Term in
   const run
   $ Stem_cli.setup_logs
+  $ separator
   $ Stem_cli.encoding
   $ Stem_cli.language
   $ Stem_cli.actions
