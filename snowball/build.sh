@@ -8,7 +8,7 @@ AR=ar
 CFLAGS=$2
 # Be sure that we use -fPIC option
 # TODO(dinosaure): verify the support of regex with bash
-# [[ ! "$CFLAGS" =~ (^|[[:space:]])-fPIC($|[[:space:]]) ]] && CFLAGS="$CFLAGS -fPIC"
+[[ ! "$CFLAGS" =~ (^|[[:space:]])-fPIC($|[[:space:]]) ]] && CFLAGS="$CFLAGS -fPIC"
 
 echo "CC: ${CC}"
 echo "CFLAGS: ${CFLAGS}"
