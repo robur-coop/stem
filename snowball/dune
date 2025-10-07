@@ -4,11 +4,8 @@
  (action
   (with-stdout-to
    build.log
-   (run
-    sh
-    ./build.sh
-    "%{ocaml-config:c_compiler}"
-    "%{ocaml-config:ocamlc_cflags}"))))
+   (bash
+    "./build.sh %{ocaml-config:c_compiler} %{ocaml-config:ocamlc_cflags}"))))
 
 (library
  (name snowball)
