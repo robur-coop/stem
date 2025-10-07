@@ -1,9 +1,9 @@
 opam-version: "2.0"
 name: "stem"
-synopsis: ""
+synopsis: "A stemmer of words for few languages"
 maintainer: "Romain Calascibetta <romain.calascibetta@gmail.com>"
 authors: "Romain Calascibetta <romain.calascibetta@gmail.com>"
-license: "BSD-3-Clause"
+license: "MIT"
 homepage: "https://github.com/dinosaure/stem"
 doc: "https://dinosaure.github.io/stem/"
 bug-reports: "https://github.com/dinosaure/stem/issues"
@@ -12,6 +12,10 @@ depends: [
   "dune"                {>= "2.9.0"}
   "miou"
   "fmt"
+  "logs"
+  "re"
+  "uutf"
+  "uucp"
   "cmdliner"
 ]
 build: [
