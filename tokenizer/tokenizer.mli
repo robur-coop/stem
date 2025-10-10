@@ -7,5 +7,5 @@ type behavior = Norm.behavior =
 type pattern = Whitespace | Dash | Bert | Regex of Re.re
 type action = pattern * Norm.behavior
 
-val run : action list -> string -> string Seq.t
+val run : action list -> string Seq.t -> string Seq.t
 (** [run actions str] applies [actions] on the given [str]. *)

@@ -1,7 +1,5 @@
 (* TODO(dinosaure): handle [encoding]. *)
-let find_matches ?encoding:_ ?(off = 0) ?len str =
-  let len = match len with None -> String.length str - off | Some len -> len in
-  let str = String.sub str off len in
+let find_matches ?encoding:_ str =
   match String.split_on_char '-' str with
   | [] -> assert false
   | [ str ] -> List.to_seq [ { S.str; is_match = false } ]

@@ -96,7 +96,9 @@ let run _ separator encoding language actions filename =
   let len = in_channel_length ic in
   let buf = Bytes.create len in
   really_input ic buf 0 len ;
-  let words = Tokenizer.run actions (Bytes.unsafe_to_string buf) in
+  let str = Bytes.unsafe_to_string buf in
+  let str = Seq.return str in
+  let words = Tokenizer.run actions str in
   let queue, prm0 = Stream.of_seq ~parallel:true 0x100 words in
   let prm1 = Miou.call (counter encoding language queue) in
   Miou.await_exn prm0 ;

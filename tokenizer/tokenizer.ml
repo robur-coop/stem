@@ -12,11 +12,11 @@ type action = pattern * Norm.behavior
 
 let from_regex re : (module S.PATTERN) =
   let module M = struct
-    let find_matches ?encoding:_ ?off:pos ?len str =
+    let find_matches ?encoding:_ str =
       let fn = function
         | `Delim g -> { S.str = Re.Group.get g 0; is_match = true }
         | `Text str -> { S.str; is_match = false } in
-      Re.Seq.split_full ?pos ?len re str |> Seq.map fn
+      Re.Seq.split_full re str |> Seq.map fn
   end in
   (module M)
 
@@ -27,9 +27,9 @@ let pattern_to_module pattern : (module S.PATTERN) =
   | Bert -> (module Bert)
   | Regex re -> from_regex re
 
-let run lst str =
-  let fn acc (pattern, behavior) =
+let run lst seq =
+  let fn (acc : string Seq.t) (pattern, behavior) =
     let pattern = pattern_to_module pattern in
     let fn = Norm.split ~pattern ~behavior in
     Seq.flat_map fn acc in
-  Seq.fold_left fn (List.to_seq [ str ]) (List.to_seq lst)
+  Seq.fold_left fn seq (List.to_seq lst)
