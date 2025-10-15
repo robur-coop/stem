@@ -20,7 +20,7 @@ let tok01 =
   Alcotest.test_case "bert tokenizer" `Quick @@ fun () ->
   let str = Seq.return "Hey friend!     How are you?!?" in
   let actions = Tokenizer.[ (Bert, Isolate); (Whitespace, Remove) ] in
-  let lst = Tokenizer.run actions str |> List.of_seq in
+  let lst = Tokenizer.run ~to_lowercase:false actions str |> List.of_seq in
   Alcotest.(check (list string))
     "bert" lst
     [ "Hey"; "friend"; "!"; "How"; "are"; "you"; "?"; "!"; "?" ]

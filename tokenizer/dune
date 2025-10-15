@@ -2,4 +2,4 @@
  (name tokenizer)
  (public_name stem.tokenizer)
  (modules tokenizer on_utf8 whitespace bert dash norm s)
- (libraries fmt uutf uucp re stem.snowball))
+ (libraries bstr fmt uutf uucp re stem.snowball))

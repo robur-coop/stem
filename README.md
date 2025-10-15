@@ -19,7 +19,7 @@ and the way the result is displayed in CSV format:
 
 ```shell
 $ opam install stem
-$ stem.ts -l french -a bert:remove -a whitespace:remove file.txt
+$ stem.ts -l french -a bert:isolate -a whitespace:remove file.txt
 "est",14                             
 "son",13
 "tout",11

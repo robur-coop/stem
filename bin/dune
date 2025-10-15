@@ -15,6 +15,12 @@
   stem.tokenizer
   miou.unix))
 
+(executable
+ (name search)
+ (modules search)
+ (public_name stem.search)
+ (libraries cmdliner stem.cli fmt stem.bm25))
+
 (library
  (name stem_cli)
  (modules stem_cli)

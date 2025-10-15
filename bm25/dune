@@ -1,0 +1,4 @@
+(library
+ (name bm25)
+ (public_name stem.bm25)
+ (libraries miou.unix stem.stopwords stem.tokenizer))

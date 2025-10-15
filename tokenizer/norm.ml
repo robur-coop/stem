@@ -1,8 +1,6 @@
 type behavior = Remove | Isolate | Merge_with_previous | Merge_with_next
 
-let split ~pattern:(module Pattern : S.PATTERN) ?(behavior = Remove) str =
-  let matches = Pattern.find_matches str in
-  match behavior with
+let norm matches = function
   | Remove ->
       let fn = function
         | { S.is_match = true; _ } -> None
@@ -34,4 +32,12 @@ let split ~pattern:(module Pattern : S.PATTERN) ?(behavior = Remove) str =
       let _, sstr = Seq.fold_left fn (None, []) matches in
       List.(to_seq (List.rev sstr))
 
-let whitespace doc = split ~pattern:(module Whitespace) ~behavior:Remove doc
+let split ~encoding ~pattern:(module Pattern : S.PATTERN) ?(behavior = Remove)
+    str =
+  let matches = Pattern.find_matches ~encoding str in
+  norm matches behavior
+
+let split_on_bstr ~encoding ~pattern:(module Pattern : S.PATTERN)
+    ?(behavior = Remove) bstr =
+  let matches = Pattern.find_matches_on_bstr ~encoding bstr in
+  norm matches behavior

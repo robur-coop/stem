@@ -64,8 +64,9 @@ let ( let@ ) finally fn = Fun.protect ~finally fn
 let error_msgf fmt = Fmt.kstr (fun msg -> Error (`Msg msg)) fmt
 
 let none_if_stop language =
-  let stops = List.assoc language Stopwords.words in
-  fun word -> if List.mem word stops then None else Some word
+  match List.assoc_opt language Stopwords.words with
+  | Some stops -> fun word -> if List.mem word stops then None else Some word
+  | None -> Option.some
 
 let counter encoding language queue () =
   let dataset = Hashtbl.create 0x100 in
@@ -148,7 +149,7 @@ let term =
 let cmd =
   let doc = "Stem words." in
   let man = [] in
-  let info = Cmd.info "stemmer" ~doc ~man in
+  let info = Cmd.info "ts" ~doc ~man in
   Cmd.v info term
 
 let () = Cmd.(exit @@ eval cmd)

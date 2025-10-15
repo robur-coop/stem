@@ -101,7 +101,7 @@ let actions =
   let doc = "An action to $(i,tokenize) the given document and split words." in
   let open Arg in
   value
-  & opt_all action [ Tokenizer.(Whitespace, Remove) ]
+  & opt_all action Tokenizer.[ (Whitespace, Remove); (Bert, Isolate) ]
   & info [ "a"; "action" ] ~doc ~docv:"ACTION"
 
 let () = Logs_threaded.enable ()
