@@ -1,5 +1,6 @@
 type config
-type t
+type 'uid t
+type 'uid file = 'uid * [ `Contents of Bstr.t | `File of string ]
 
 val config :
   ?parallel:bool ->
@@ -8,5 +9,5 @@ val config :
   Snowball.Language.t ->
   config
 
-val make : cfg:config -> ?k1:float -> ?b:float -> string list -> t
-val rank : t -> string -> (string * float) list
+val make : cfg:config -> ?k1:float -> ?b:float -> 'uid file list -> 'uid t
+val rank : 'uid t -> string -> ('uid * float) list

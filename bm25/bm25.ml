@@ -1,5 +1,5 @@
-type document = {
-  filename : string;
+type 'uid document = {
+  uid : 'uid;
   tokens : (string, int) Hashtbl.t;
   length : int;
 }
@@ -45,13 +45,23 @@ let counter encoding language queue () =
     | None, _, _ -> dataset in
   go ()
 
-let freqs_of_document ~cfg filename =
-  let fd = Unix.openfile filename Unix.[ O_RDONLY ] 0o644 in
-  let@ () = fun () -> Unix.close fd in
-  let len = Unix.((fstat fd).st_size) in
-  let bstr = Unix.map_file fd Bigarray.char Bigarray.c_layout false [| len |] in
-  let bstr = Bigarray.array1_of_genarray bstr in
-  let words = Tokenizer.run_on_bstr cfg.actions bstr in
+type 'uid file = 'uid * [ `Contents of Bstr.t | `File of string ]
+
+let freqs_of_document ~cfg (uid, contents) =
+  let contents =
+    match contents with
+    | `Contents bstr -> `Bigstring bstr
+    | `File filename ->
+        let ic = open_in filename in
+        let@ () = fun () -> close_in ic in
+        let len = in_channel_length ic in
+        let buf = Bytes.create len in
+        really_input ic buf 0 len ;
+        `String (Bytes.unsafe_to_string buf) in
+  let words =
+    match contents with
+    | `Bigstring bstr -> Tokenizer.run_on_bstr cfg.actions bstr
+    | `String str -> Tokenizer.run cfg.actions (Seq.return str) in
   let queue, prm0 = Stream.of_seq ~parallel:cfg.parallel 0x100 words in
   let prm1 =
     if cfg.parallel
@@ -60,7 +70,7 @@ let freqs_of_document ~cfg filename =
   Miou.await_exn prm0 ;
   let tokens = Miou.await_exn prm1 in
   let length = Hashtbl.length tokens in
-  { filename; tokens; length }
+  { uid; tokens; length }
 
 let freqs_of_document ~cfg filename =
   try freqs_of_document ~cfg filename
@@ -71,13 +81,13 @@ let freqs_of_document ~cfg filename =
 
 let or_raise = function Ok value -> value | Error exn -> raise exn
 
-type t = {
+type 'uid t = {
   cfg : config;
   idf : (string, float) Hashtbl.t;
   avgdl : float;
   k1 : float;
   b : float;
-  docs : document list;
+  docs : 'uid document list;
 }
 
 let make ~cfg ?(k1 = 1.5) ?(b = 0.75) documents =
@@ -130,7 +140,7 @@ let score t query doc =
         let _n = freq *. (t.k1 +. 1.) in
         let _m = freq +. (t.k1 *. (1. -. t.b +. (t.b *. _D /. t.avgdl))) in
         acc +. (idf *. (_n /. _m)) in
-  (doc.filename, List.fold_left fn 0.0 query)
+  (doc.uid, List.fold_left fn 0.0 query)
 
 let rank t query =
   let query = tokenize_and_stem t query in
