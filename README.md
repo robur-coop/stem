@@ -31,3 +31,20 @@ $ stem.ts -l french -a bert:isolate -a whitespace:remove file.txt
 "m\195\170m",7
 ...
 ```
+
+## A little search engine ([BM25][bm25])
+
+The distribution also offers the implementation of a small search engine (based
+on the [Okapi BM25 algorithm][bm25]). It uses _stems_ to calculate occurrences
+(which avoids duplicates such as `"should"` or `"shoulds"`).
+
+A `search` tool is available that allows the relevance of documents to be rated
+according to a query, based on a given corpus.
+
+```shell
+$ opam install bm25
+$ okapi -d file0.txt -d file1.txt -d file2.txt -l french "un chat noir"
+file0.txt: 1.356894
+file2.txt: 0.439572
+file1.txt: 0.000000
+```

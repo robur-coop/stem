@@ -1,7 +1,7 @@
 let ( let@ ) finally fn = Fun.protect ~finally fn
 
 let run _ encoding language actions documents query =
-  Miou_unix.run @@ fun () ->
+  Miou.run @@ fun () ->
   let cfg = Bm25.config ~encoding ~actions language in
   let fn filename =
     let fd = Unix.openfile filename Unix.[ O_RDONLY ] 0o644 in
@@ -12,7 +12,7 @@ let run _ encoding language actions documents query =
     (filename, `Contents (Bigarray.array1_of_genarray bstr)) in
   let documents = List.map fn documents in
   let t = Bm25.make ~cfg documents in
-  let results = Bm25.rank t query in
+  let results = Bm25.score t query in
   let results = List.sort (fun (_, a) (_, b) -> Float.compare b a) results in
   let fn (filename, score) = Fmt.pr "%s: %f\n%!" filename score in
   List.iter fn results

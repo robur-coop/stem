@@ -21,3 +21,7 @@ val run_on_bstr :
   action list ->
   Bstr.t ->
   string Seq.t
+(** [run actions bstr] applies [actions] on the given [bstr].
+
+    {b NOTE}: The advantage of using a {i bigstring} is that you can load a file
+    using [Unix.map_file] and process the file to obtain a stream of tokens. *)

@@ -1,11 +1,14 @@
 (executable
  (name stemmer)
  (modules stemmer)
+ (package stem)
+ (public_name stem.stemmer)
  (libraries fmt stem.cli stem.snowball))
 
 (executable
  (name ts)
  (modules ts)
+ (package stem)
  (public_name stem.ts)
  (libraries
   fmt
@@ -18,8 +21,9 @@
 (executable
  (name search)
  (modules search)
- (public_name stem.search)
- (libraries cmdliner stem.cli fmt stem.bm25))
+ (package bm25)
+ (public_name okapi)
+ (libraries cmdliner stem.cli fmt bm25))
 
 (library
  (name stem_cli)

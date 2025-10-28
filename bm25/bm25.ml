@@ -1,3 +1,5 @@
+module Stream = Flux.Bqueue
+
 type 'uid document = {
   uid : 'uid;
   tokens : (string, int) Hashtbl.t;
@@ -45,12 +47,14 @@ let counter encoding language queue () =
     | None, _, _ -> dataset in
   go ()
 
-type 'uid file = 'uid * [ `Contents of Bstr.t | `File of string ]
+type 'uid file =
+  'uid * [ `Contents of Bstr.t | `File of string | `String of string ]
 
 let freqs_of_document ~cfg (uid, contents) =
   let contents =
     match contents with
     | `Contents bstr -> `Bigstring bstr
+    | `String str -> `String str
     | `File filename ->
         let ic = open_in filename in
         let@ () = fun () -> close_in ic in
@@ -62,22 +66,24 @@ let freqs_of_document ~cfg (uid, contents) =
     match contents with
     | `Bigstring bstr -> Tokenizer.run_on_bstr cfg.actions bstr
     | `String str -> Tokenizer.run cfg.actions (Seq.return str) in
-  let queue, prm0 = Stream.of_seq ~parallel:cfg.parallel 0x100 words in
-  let prm1 =
-    if cfg.parallel
-    then Miou.call (counter cfg.encoding cfg.language queue)
-    else Miou.async (counter cfg.encoding cfg.language queue) in
+  let spawn fn = if cfg.parallel then Miou.call fn else Miou.async fn in
+  let queue, prm0 =
+    let queue = Stream.(create with_close) 0x7ff in
+    let prm =
+      spawn @@ fun () ->
+      let rec go seq =
+        match Seq.uncons seq with
+        | Some (x, seq) ->
+            Stream.put queue x ;
+            go seq
+        | None -> Stream.close queue in
+      go words in
+    (queue, prm) in
+  let prm1 = spawn (counter cfg.encoding cfg.language queue) in
   Miou.await_exn prm0 ;
   let tokens = Miou.await_exn prm1 in
   let length = Hashtbl.length tokens in
   { uid; tokens; length }
-
-let freqs_of_document ~cfg filename =
-  try freqs_of_document ~cfg filename
-  with exn ->
-    let bt = Printexc.get_raw_backtrace () in
-    Fmt.epr "%s%!" (Printexc.raw_backtrace_to_string bt) ;
-    raise exn
 
 let or_raise = function Ok value -> value | Error exn -> raise exn
 
@@ -94,7 +100,10 @@ let make ~cfg ?(k1 = 1.5) ?(b = 0.75) documents =
   let _N = Float.of_int (List.length documents) in
   let _total_length = ref 0 in
   let fn filename = freqs_of_document ~cfg filename in
-  let docs = Miou.parallel fn documents in
+  let docs =
+    if Miou.Domain.available () > 1
+    then Miou.parallel fn documents
+    else List.map (Fun.compose Result.ok fn) documents in
   let docs = List.map or_raise docs in
   let total_length =
     let fn acc { length; _ } = acc + length in
@@ -142,7 +151,7 @@ let score t query doc =
         acc +. (idf *. (_n /. _m)) in
   (doc.uid, List.fold_left fn 0.0 query)
 
-let rank t query =
+let score t query =
   let query = tokenize_and_stem t query in
   let fn = score t query in
   List.map fn t.docs

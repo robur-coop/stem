@@ -1,7 +1,6 @@
 (executable
  (name generate)
- (modules generate)
- (libraries fmt))
+ (modules generate))
 
 (library
  (name stopwords)
