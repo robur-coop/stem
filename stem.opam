@@ -8,8 +8,9 @@ homepage: "https://github.com/dinosaure/stem"
 doc: "https://dinosaure.github.io/stem/"
 bug-reports: "https://github.com/dinosaure/stem/issues"
 depends: [
-  "ocaml"    {>= "5.1.0"}
-  "dune"     {>= "2.9.0"}
+  "ocaml"     {>= "5.1.0"}
+  "dune"      {>= "2.9.0"}
+  "conf-bash" {build}
   "miou"
   "logs"
   "fmt"
