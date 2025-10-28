@@ -48,3 +48,5 @@ file0.txt: 1.356894
 file2.txt: 0.439572
 file1.txt: 0.000000
 ```
+
+[bm25]: https://en.wikipedia.org/wiki/Okapi_BM25
