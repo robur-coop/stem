@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # $1 => c_compiler
 # $2 => ocaml_c_flags
