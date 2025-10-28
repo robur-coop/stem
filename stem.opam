@@ -11,6 +11,7 @@ depends: [
   "ocaml"    {>= "5.1.0"}
   "dune"     {>= "2.9.0"}
   "miou"
+  "logs"
   "fmt"
   "re"
   "uutf"
