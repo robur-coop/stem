@@ -38,5 +38,13 @@ for file in "${INCLUDES[@]}"; do
  fi
 done
 
-${CC} -shared -o dllstemmer.so -Wl,--whole-archive libstemmer.a -Wl,--no-whole-archive
-echo " LD dllstemmer.so"
+case "$(uname -s)" in
+  Darwin)
+    ${CC} -shared -o dllstemmer.o -Wl,-all_load libstemmer.a
+    echo " LD dllstemmer.so"
+    ;;
+  *)
+    ${CC} -shared -o dllstemmer.so -Wl,--whole-archive libstemmer.a -Wl,--no-whole-archive
+    echo " LD dllstemmer.so"
+    ;;
+esac
