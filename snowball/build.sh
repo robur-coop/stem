@@ -9,15 +9,16 @@ CFLAGS=$2
 # Be sure that we use -fPIC option
 # TODO(dinosaure): verify the support of regex with bash
 [[ ! "$CFLAGS" =~ (^|[[:space:]])-fPIC($|[[:space:]]) ]] && CFLAGS="$CFLAGS -fPIC"
+MAKE=$(command -v gmake >/dev/null 2>&1 && echo gmake || echo make)
 
 echo "CC: ${CC}"
 echo "CFLAGS: ${CFLAGS}"
 
 LIBSTEMMER="libstemmer_c-3.0.1"
 [ ! -d "${LIBSTEMMER}.tar.gz" ] && tar xzf "${LIBSTEMMER}.tar.gz"
-SRCS=($(make LIBSTEMMER=${LIBSTEMMER} srcs))
+SRCS=($(${MAKE} LIBSTEMMER=${LIBSTEMMER} srcs))
 SRCS=( "${SRCS[@]/#/${LIBSTEMMER}/}" )
-INCLUDES=($(make LIBSTEMMER=${LIBSTEMMER} includes))
+INCLUDES=($(${MAKE} LIBSTEMMER=${LIBSTEMMER} includes))
 INCLUDES=( "${INCLUDES[@]/#/${LIBSTEMMER}/}" )
 
 OBJS=()
