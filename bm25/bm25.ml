@@ -1,3 +1,6 @@
+let src = Logs.Src.create "bm25"
+
+module Log = (val Logs.src_log src : Logs.LOG)
 module Stream = Flux.Bqueue
 
 type 'uid document = {
@@ -47,42 +50,51 @@ let counter encoding language queue () =
     | None, _, _ -> dataset in
   go ()
 
-type 'uid file =
-  'uid * [ `Contents of Bstr.t | `File of string | `String of string ]
+type 'uid src =
+  'uid * [ `Contents of Bstr.t | `File of string | `String of string | `Document of 'uid document ]
+
+type 'uid to_analyze =
+  [ `Contents of Bstr.t | `File of string | `String of string ]
 
 let freqs_of_document ~cfg (uid, contents) =
-  let contents =
-    match contents with
-    | `Contents bstr -> `Bigstring bstr
-    | `String str -> `String str
-    | `File filename ->
-        let ic = open_in filename in
-        let@ () = fun () -> close_in ic in
-        let len = in_channel_length ic in
-        let buf = Bytes.create len in
-        really_input ic buf 0 len ;
-        `String (Bytes.unsafe_to_string buf) in
-  let words =
-    match contents with
-    | `Bigstring bstr -> Tokenizer.run_on_bstr cfg.actions bstr
-    | `String str -> Tokenizer.run cfg.actions (Seq.return str) in
-  let spawn fn = if cfg.parallel then Miou.call fn else Miou.async fn in
-  let queue, prm0 =
-    let queue = Stream.(create with_close) 0x7ff in
-    let prm =
-      spawn @@ fun () ->
-      let rec go seq =
-        match Seq.uncons seq with
-        | Some (x, seq) ->
-            Stream.put queue x ;
-            go seq
-        | None -> Stream.close queue in
-      go words in
-    (queue, prm) in
-  let prm1 = spawn (counter cfg.encoding cfg.language queue) in
-  Miou.await_exn prm0 ;
-  let tokens = Miou.await_exn prm1 in
-  let length = Hashtbl.length tokens in
+  match contents with
+  | `Document document -> document
+  | #to_analyze as contents ->
+    let contents =
+      match contents with
+      | `Contents bstr -> `Bigstring bstr
+      | `String str -> `String str
+      | `File filename ->
+          let ic = open_in filename in
+          let@ () = fun () -> close_in ic in
+          let len = in_channel_length ic in
+          let buf = Bytes.create len in
+          really_input ic buf 0 len ;
+          `String (Bytes.unsafe_to_string buf) in
+    let words =
+      match contents with
+      | `Bigstring bstr -> Tokenizer.run_on_bstr cfg.actions bstr
+      | `String str -> Tokenizer.run cfg.actions (Seq.return str) in
+    let spawn fn = if cfg.parallel then Miou.call fn else Miou.async fn in
+    let queue, prm0 =
+      let queue = Stream.(create with_close) 0x7ff in
+      let prm =
+        spawn @@ fun () ->
+        let rec go seq =
+          match Seq.uncons seq with
+          | Some (x, seq) ->
+              Stream.put queue x ;
+              go seq
+          | None -> Stream.close queue in
+        go words in
+      (queue, prm) in
+    let prm1 = spawn (counter cfg.encoding cfg.language queue) in
+    Miou.await_exn prm0 ;
+    let tokens = Miou.await_exn prm1 in
+    let length = Hashtbl.length tokens in
+    { uid; tokens; length }
+
+let document ~length ~tokens uid =
   { uid; tokens; length }
 
 let or_raise = function Ok value -> value | Error exn -> raise exn
@@ -125,6 +137,8 @@ let make ~cfg ?(k1 = 1.5) ?(b = 0.75) documents =
     let value = Float.(log (1. +. ((_N -. freq +. 0.5) /. (freq +. 0.5)))) in
     Hashtbl.add idf token value in
   Hashtbl.iter fn df ;
+  Log.debug (fun m -> m "IDF has %d token(s)" (Hashtbl.length idf));
+  Log.debug (fun m -> m "avgdl: %f" avgdl);
   { cfg; idf; avgdl; k1; b; docs }
 
 let tokenize_and_stem t query =
@@ -154,4 +168,5 @@ let score t query doc =
 let score t query =
   let query = tokenize_and_stem t query in
   let fn = score t query in
-  List.map fn t.docs
+  Miou.parallel fn t.docs
+  |> List.map (function Ok v -> v | Error exn -> raise exn)

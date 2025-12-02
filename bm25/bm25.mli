@@ -1,9 +1,12 @@
 type config
 type 'uid t
+type 'uid document
 
-type 'uid file =
-  'uid * [ `Contents of Bstr.t | `File of string | `String of string ]
+type 'uid src =
+  'uid * [ `Contents of Bstr.t | `File of string | `String of string | `Document of 'uid document ]
 (** Type of documents with their contents. *)
+
+val document : length:int -> tokens:(string, int) Hashtbl.t -> 'uid -> 'uid document
 
 val config :
   ?parallel:bool ->
@@ -22,7 +25,7 @@ val config :
     - [language] specifies the language of the documents (and how to obtain the
       root of words). *)
 
-val make : cfg:config -> ?k1:float -> ?b:float -> 'uid file list -> 'uid t
+val make : cfg:config -> ?k1:float -> ?b:float -> 'uid src list -> 'uid t
 (** [make ~cfg ?k1 ?b documents] collects all occurrences in the given
     [documents]. This creates a {i search space} that can be used to search for
     certain words and obtain a score (with {!val:score}) for each document
