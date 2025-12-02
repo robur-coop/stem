@@ -1,4 +1,4 @@
 (library
  (name bm25)
  (public_name bm25)
- (libraries flux miou stem.stopwords stem.tokenizer))
+ (libraries logs flux miou stem.stopwords stem.tokenizer))
