@@ -5,7 +5,7 @@
   (with-stdout-to
    build.log
    (bash
-    "./build.sh %{ocaml-config:c_compiler} %{ocaml-config:ocamlc_cflags}"))))
+    "./build.sh %{ocaml-config:c_compiler} '%{ocaml-config:ocamlc_cflags}' %{ocaml-config:supports_shared_libraries}"))))
 
 (library
  (name snowball)

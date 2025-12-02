@@ -2,10 +2,12 @@
 
 # $1 => c_compiler
 # $2 => ocaml_c_flags
+# $3 => supports_shared_libraries
 
 CC=$1
 AR=ar
 CFLAGS=$2
+SUPPORTS_SHARED_LIBRARIES=$3
 # Be sure that we use -fPIC option
 # TODO(dinosaure): verify the support of regex with bash
 [[ ! "$CFLAGS" =~ (^|[[:space:]])-fPIC($|[[:space:]]) ]] && CFLAGS="$CFLAGS -fPIC"
@@ -38,13 +40,18 @@ for file in "${INCLUDES[@]}"; do
  fi
 done
 
-case "$(uname -s)" in
-  Darwin)
-    ${CC} -shared -o dllstemmer.o -Wl,-all_load libstemmer.a
-    echo " LD dllstemmer.so"
-    ;;
-  *)
-    ${CC} -shared -o dllstemmer.so -Wl,--whole-archive libstemmer.a -Wl,--no-whole-archive
-    echo " LD dllstemmer.so"
-    ;;
-esac
+if $SUPPORTS_SHARED_LIBRARIES; then
+  case "$(uname -s)" in
+    Darwin)
+      ${CC} -shared -o dllstemmer.o -Wl,-all_load libstemmer.a
+      echo " LD dllstemmer.so"
+      ;;
+    *)
+      ${CC} -shared -o dllstemmer.so -Wl,--whole-archive libstemmer.a -Wl,--no-whole-archive
+      echo " LD dllstemmer.so"
+      ;;
+  esac
+else
+  touch "dllstemmer.so"
+  echo " LD dllstemmer.so"
+fi
