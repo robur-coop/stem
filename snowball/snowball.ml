@@ -2,6 +2,8 @@
 
 type encoding = ISO_8859_1 | ISO_8859_2 | KOI8_R | UTF_8
 
+let invalid_argf fmt = Format.kasprintf invalid_arg fmt
+
 let encoding_to_string = function
   | ISO_8859_1 -> "ISO_8859_1"
   | ISO_8859_2 -> "ISO_8859_2"
@@ -37,4 +39,4 @@ let create ?(encoding = UTF_8) alg =
   C.stem_new alg encoding
 
 let remove = C.stem_delete
-let stem t word = C.stem t word
+let stem t word = try C.stem t word with _ -> invalid_argf "%S is an invalid word to stem" word
