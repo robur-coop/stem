@@ -39,4 +39,7 @@ let create ?(encoding = UTF_8) alg =
   C.stem_new alg encoding
 
 let remove = C.stem_delete
-let stem t word = try C.stem t word with _ -> invalid_argf "%S is an invalid word to stem" word
+
+let stem t word =
+  try C.stem t word
+  with _ -> invalid_argf "%S is an invalid word to stem" word

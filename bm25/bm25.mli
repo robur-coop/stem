@@ -3,10 +3,15 @@ type 'uid t
 type 'uid document
 
 type 'uid src =
-  'uid * [ `Contents of Bstr.t | `File of string | `String of string | `Document of 'uid document ]
+  'uid
+  * [ `Contents of Bstr.t
+    | `File of string
+    | `String of string
+    | `Document of 'uid document ]
 (** Type of documents with their contents. *)
 
-val document : length:int -> tokens:(string, int) Hashtbl.t -> 'uid -> 'uid document
+val document :
+  length:int -> tokens:(string, int) Hashtbl.t -> 'uid -> 'uid document
 
 val config :
   ?parallel:bool ->
